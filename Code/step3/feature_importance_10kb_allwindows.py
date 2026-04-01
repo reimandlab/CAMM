@@ -61,7 +61,7 @@ def load_training_module(model_outdir: Path):
         print(f"[Import] Using model code from: {local}")
         return mod
 
-    import run_model_hier_multi as mod
+    import Code.step1.run_model_hier_multi as mod
     print("[Import] Using model code from PYTHONPATH: run_model_hier_multi.py")
     return mod
 
