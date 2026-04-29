@@ -1,6 +1,6 @@
 # CA2M2: Chromatin Accessibility to Metastatic Mutagenesis
 
-Code for the manuscript *"Tissue-of-origin chromatin accessibility predicts regional mutagenesis in metastatic cancer"*.
+Code for the manuscript *"Tissue-of-origin chromatin accessibility predicts regional mutation density in metastatic cancer"*.
 
 A hierarchical, multi-scale, multi-task neural network that jointly predicts SNV and indel density at 1 Mb, 100 kb, and 10 kb resolution from chromatin accessibility (CA) and replication timing (RT) profiles, trained on metastatic whole-genome data (HMF) and externally validated on primary tumors (PCAWG).
 
