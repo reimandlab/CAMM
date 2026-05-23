@@ -6,7 +6,7 @@ A hierarchical, multi-scale, multi-task neural network that jointly predicts SNV
 
 ## Data
 
-- **Mutations**: PCAWG primary tumors (validation), GRCh37/hg19, autosomes only.
+- **Mutations**: PCAWG primary tumors (validation). Input WGS data and metadata annotations for metastatic cancer samples from the Hartwig Medical Foundation (HMF) are controlled-access datasets. Access to these data can be requested from the HMF and are subject to scientific review and completion of the required data access or material transfer agreements. Intermediate files derived from HMF controlled-access datasets are not publicly shared because of data-use restrictions.
 - **Epigenomes**: 796 TCGA ATAC-seq CA profiles + 96 ENCODE Repli-seq RT profiles.
 - **Windows**: non-overlapping 10 kb / 100 kb / 1 Mb after mappability and blacklist filtering.
 
