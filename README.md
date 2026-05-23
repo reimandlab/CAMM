@@ -18,8 +18,24 @@ Code/
   step2/   # Cross-validation, ablations, baselines, PCAWG validation
   step3/   # Feature importance (permutation + SHAP)
   step4/   # Mutation-enriched windows and cancer-gene annotation
+Data/
+  CA_RT/   # CA + RT feature matrices
+    atac_with_repliseq_10kb/   # Chromosome-split 10 kb CA + RT matrix
+  PCAWG/   # PCAWG validation mutation-density tables
+Model/     # Trained cancer-specific model checkpoints
 Figure_script/   # Python/R scripts for Figures 1–4
 ```
+
+### `Data/` — bundled data
+- `CA_RT/`: TCGA ATAC-seq CA profiles with ENCODE Repli-seq RT features at 1 Mb, 100 kb, and 10 kb resolution.
+- `CA_RT/atac_with_repliseq_10kb/`: the 10 kb CA / RT matrix is split by chromosome due to file size. Rebuild the combined matrix with:
+  ```bash
+  python Data/CA_RT/atac_with_repliseq_10kb/combine_chr_tsv.py Data/CA_RT/atac_with_repliseq_10kb -o Data/CA_RT/atac_with_repliseq.10kb.tsv.gz
+  ```
+- `PCAWG/`: PCAWG SNV and indel validation tables at 1 Mb, 100 kb, and 10 kb resolution.
+
+### `Model/` — trained models
+- Cancer-specific trained PyTorch checkpoints for breast, colorectal, esophagus, lung, prostate, and skin cancers.
 
 ### `Code/step1` — model training
 - [run_model_hier_multi.py](Code/step1/run_model_hier_multi.py): hierarchical multi-scale (1 Mb → 100 kb → 10 kb), multi-task (SNV + indel) MLP with adaptive feature gating, coarse-to-fine context flow, and uncertainty-weighted loss.
