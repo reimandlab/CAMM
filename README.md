@@ -6,7 +6,7 @@ A hierarchical, multi-scale, multi-task neural network that jointly predicts SNV
 
 ## Data
 
-- **Mutations**: HMF metastatic WGS (6 cancer types: breast, colorectal, prostate, lung, esophagus, skin) and PCAWG primary tumors (validation), GRCh37/hg19, autosomes only.
+- **Mutations**: PCAWG primary tumors (validation), GRCh37/hg19, autosomes only.
 - **Epigenomes**: 796 TCGA ATAC-seq CA profiles + 96 ENCODE Repli-seq RT profiles.
 - **Windows**: non-overlapping 10 kb / 100 kb / 1 Mb after mappability and blacklist filtering.
 
