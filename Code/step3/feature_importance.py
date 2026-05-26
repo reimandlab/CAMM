@@ -350,7 +350,7 @@ def permutation_importance_10kb(
     X3: np.ndarray,
     Y_snv_10kb: np.ndarray,
     cols_10kb: List[str],
-    repeats: int = 100,
+    repeats: int = 1000,
     batch_size: int = 1024,
     device: Optional[torch.device] = None,
     feature_regex: Optional[str] = None,
@@ -611,14 +611,14 @@ def main():
     ap.add_argument("--batch_size", type=int, default=1024)
 
     # permutation settings
-    ap.add_argument("--permutation_repeats", type=int, default=100)
+    ap.add_argument("--permutation_repeats", type=int, default=1000)
     ap.add_argument(
         "--feature_regex",
         type=str,
         default=None,
         help="Regex to select 10kb features (e.g. '(ca|acc|rt)'); empty=all.",
     )
-    ap.add_argument("--p_threshold", type=float, default=0.05)
+    ap.add_argument("--p_threshold", type=float, default=0.001)
     ap.add_argument(
         "--p_use",
         choices=["p_one_sided_greater", "p_two_sided"],
