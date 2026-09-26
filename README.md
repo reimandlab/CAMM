@@ -1,75 +1,107 @@
 # CAMM: Chromatin Accessibility to Metastatic Mutagenesis
 
-Code for the manuscript *"Chromatin accessibility of primary cancers informs regional mutagenesis in metastases through multi-scale deep learning"*.
+Code, trained checkpoints, and public inputs for the manuscript *"Chromatin accessibility of primary cancers informs regional mutagenesis in metastases through multi-scale deep learning"*.
 
-A hierarchical, multi-scale, multi-task neural network that jointly predicts SNV and indel density at 1 Mb, 100 kb, and 10 kb resolution from chromatin accessibility (CA) and replication timing (RT) profiles, trained on metastatic whole-genome data (HMF) and externally validated on primary tumors (PCAWG).
-
-## Data
-
-- **Mutations**: PCAWG primary tumors (validation). Input WGS data and metadata annotations for metastatic cancer samples from the Hartwig Medical Foundation (HMF) are controlled-access datasets. Access to these data can be requested from the HMF and are subject to scientific review and completion of the required data access or material transfer agreements. Intermediate files derived from HMF controlled-access datasets are not publicly shared because of data-use restrictions.
-- **Epigenomes**: 796 TCGA ATAC-seq CA profiles + 96 ENCODE Repli-seq RT profiles.
-- **Windows**: non-overlapping 10 kb / 100 kb / 1 Mb after mappability and blacklist filtering.
+CAMM is a hierarchical, multi-scale, multi-task neural network for predicting single-nucleotide variant (SNV) and indel density at 1 Mb, 100 kb, and 10 kb resolution from chromatin accessibility (CA) and replication timing (RT). The study uses metastatic whole-genome data from the Hartwig Medical Foundation (HMF) for training and PCAWG primary tumors for external validation.
 
 ## Repository layout
 
-```
+```text
 Code/
-  step1/   # Hyperparameter search + main hierarchical MS-MT model
-  step2/   # Cross-validation, ablations, baselines, PCAWG validation
-  step3/   # Feature importance (permutation + SHAP)
-  step4/   # Mutation-enriched windows and cancer-gene annotation
+  step1/          # Hyperparameter search and model training
+  step2/          # Cross-validation, ablations, baselines, and PCAWG validation
+  step3/          # Permutation importance and SHAP attribution
+  step4/          # Mutation-enriched windows and gene annotation
 Data/
-  CA_RT/   # CA + RT feature matrices
-    atac_with_repliseq_10kb/   # Chromosome-split 10 kb CA + RT matrix
-  PCAWG/   # PCAWG validation mutation-density tables
-Model/     # Trained cancer-specific model checkpoints
-Figure_script/   # Python/R scripts for Figures 1–4
+  CA_RT/          # Chromatin accessibility and replication timing features
+  PCAWG/          # Public validation mutation-count tables
+Model/            # Six cancer-specific PyTorch checkpoints
+Figure_script/    # Python and R scripts for Figures 1–4
+docs/
+  parameters.md   # Required inputs, optional parameters, and implementation notes
+requirements.txt  # Python dependency inventory
 ```
 
-### `Data/` — bundled data
-- `CA_RT/`: TCGA ATAC-seq CA profiles with ENCODE Repli-seq RT features at 1 Mb, 100 kb, and 10 kb resolution.
-- `CA_RT/atac_with_repliseq_10kb/`: the 10 kb CA / RT matrix is split by chromosome due to file size. Rebuild the combined matrix with:
-  ```bash
-  python Data/CA_RT/atac_with_repliseq_10kb/combine_chr_tsv.py Data/CA_RT/atac_with_repliseq_10kb -o Data/CA_RT/atac_with_repliseq.10kb.tsv.gz
-  ```
-- `PCAWG/`: PCAWG SNV and indel validation tables at 1 Mb, 100 kb, and 10 kb resolution.
+## Installation
 
-### `Model/` — trained models
-- Cancer-specific trained PyTorch checkpoints for breast, colorectal, esophagus, lung, prostate, and skin cancers.
+Use Python 3.11 for the following setup. The shell commands use macOS/Linux syntax. Training uses CUDA when available and otherwise runs on CPU.
 
-### `Code/step1` — model training
-- [run_model_hier_multi.py](Code/step1/run_model_hier_multi.py): hierarchical multi-scale (1 Mb → 100 kb → 10 kb), multi-task (SNV + indel) MLP with adaptive feature gating, coarse-to-fine context flow, and uncertainty-weighted loss.
-- [optuna_hier_multi_tcga_rt.py](Code/step1/optuna_hier_multi_tcga_rt.py): Optuna hyperparameter search (learning rate, batch size, hidden dim, dropout).
+```bash
+git clone --depth 1 https://github.com/reimandlab/CAMM.git
+cd CAMM
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt "pandas==2.3.3"
+```
 
-### `Code/step2` — evaluation and baselines
-- [run_model_hier_multi_cv.py](Code/step2/run_model_hier_multi_cv.py): repeated K-fold CV for the full MS-MT model.
-- [run_model_hier_single_task_cv.py](Code/step2/run_model_hier_single_task_cv.py), [run_model_multitask_single_scale_cv.py](Code/step2/run_model_multitask_single_scale_cv.py): single-task and single-scale ablations.
-- [cv_compare_mtl_ms_vs_ms_st.py](Code/step2/cv_compare_mtl_ms_vs_ms_st.py), [cv_compare_mtl_ms_vs_ss.py](Code/step2/cv_compare_mtl_ms_vs_ss.py): paired comparisons (MS-MT vs MS-ST and vs MT-SS).
-- [run_baseline_tree_models_randomsplit_independent.py](Code/step2/run_baseline_tree_models_randomsplit_independent.py): Random Forest / Elastic Net baselines, independent per (task, scale).
-- [eval_best_model_snv10_all.py](Code/step2/eval_best_model_snv10_all.py), [eval_best_model_indel10_all.py](Code/step2/eval_best_model_indel10_all.py): genome-wide 10 kb predictions and residual outlier (z > 3 / 4) tables.
-- [validate_pcawg_kfold_linear_calib.py](Code/step2/validate_pcawg_kfold_linear_calib.py): external validation on PCAWG with linear / per-chromosome calibration.
+The pandas version is specified for compatibility with the current input readers. The [dependency inventory](requirements.txt) is not a frozen manuscript environment. See the [implementation notes](docs/parameters.md#implementation-notes) for remaining compatibility issues. For GPU support, follow the [PyTorch installation instructions](https://pytorch.org/get-started/locally/). XGBoost baselines additionally require `pip install xgboost`.
 
-### `Code/step3` — interpretation
-- [feature_importance.py](Code/step3/feature_importance.py): permutation importance (1,000 permutations, empirical p-values) and SHAP attributions (Captum `ShapleyValueSampling`) for 10 kb SNV predictions.
+For R figure scripts, install:
 
-### `Code/step4` — mutation-enriched windows
-- [underestimated_windows.py](Code/step4/underestimated_windows.py): build combined tables of underestimated 10 kb windows (z > 4 baseline and optional Tukey-thresholded inputs), add window-end coordinates, intersect with `hg19_genes_gff.bed`, flag OncoKB / CGC cancer genes, and emit per-prefix step1–step6 tables plus downstream-compatible aliases (`*_cancer_genes_only.tsv`, `*_cancer_types_by_gene.tsv`).
+```r
+install.packages(c("ggplot2", "dplyr", "readr", "tidyr", "ggnewscale",
+                   "cowplot", "reshape2", "patchwork", "reticulate", "fs"))
+```
 
-### `Figure_script/`
-Plotting scripts grouped by figure:
-- **Fig. 1** — CA / RT vs mutation density heatmaps ([plot_fig1_matched_atacseq_heatmap.py](Figure_script/plot_fig1_matched_atacseq_heatmap.py), [plot_fig1_matched_repliseq_heatmaps.py](Figure_script/plot_fig1_matched_repliseq_heatmaps.py)).
-- **Fig. 2** — MS-MT vs ablations / baselines and PCAWG transfer ([plot_fig2_mtms_dots_bar.R](Figure_script/plot_fig2_mtms_dots_bar.R), [plot_fig2_legend_only.R](Figure_script/plot_fig2_legend_only.R)).
-- **Fig. 3** — SHAP-based feature importance bars and pies ([plot_fig3_bar_pie.py](Figure_script/plot_fig3_bar_pie.py), [plot_fig3_all_shap.R](Figure_script/plot_fig3_all_shap.R)).
-- **Fig. 4** — Residual analysis and mutation-enriched windows ([plot_fig4_residual_violin_outliers.py](Figure_script/plot_fig4_residual_violin_outliers.py), [plot_fig4_bar_stacked_per_cancer_z.py](Figure_script/plot_fig4_bar_stacked_per_cancer_z.py), [plot_fig4_gene_windows.py](Figure_script/plot_fig4_gene_windows.py), [plot_fig4_zscores.R](Figure_script/plot_fig4_zscores.R)).
+## Data availability
 
-## Pipeline
+| Location | Contents |
+|---|---|
+| [Data/CA_RT/](Data/CA_RT/) | CA/RT features at three resolutions: 796 TCGA ATAC-seq profiles and 96 ENCODE Repli-seq profiles |
+| [Data/PCAWG/](Data/PCAWG/) | PCAWG SNV and indel validation count tables at three resolutions |
 
-1. **Tune** — `step1/optuna_hier_multi_tcga_rt.py` per cancer type.
-2. **Train** — `step1/run_model_hier_multi.py` with the best config.
-3. **Evaluate** — `step2/` for CV, ablations, tree/linear baselines, residual extraction, and PCAWG transfer.
-4. **Interpret** — `step3/feature_importance.py` for permutation + SHAP.
-5. **Annotate** — `step4/underestimated_windows.py` to map mutation-enriched windows to genes and OncoKB / CGC cancer genes.
+HMF whole-genome data and metastatic sample metadata are controlled access. Requests are submitted through the [HMF data-access procedure](https://www.hartwigmedicalfoundation.nl/data/aanvragen-data/) and require approval and the applicable data access or material transfer agreements. HMF-derived intermediate files are not publicly shared because of data-use restrictions.
 
-## Requirements
+Feature tables are tab-separated, optionally gzip-compressed; mutation tables are comma-separated. Both use `chr` and `start` coordinates. Mutation targets are selected by cancer-type column. Input-column handling and the current limitations of cross-scale alignment are described in the [implementation notes](docs/parameters.md#implementation-notes).
 
-Python 3.9+ with `torch`, `numpy`, `pandas`, `scikit-learn`, `optuna`, `captum`, `shap`; R with `tidyverse` / `ggplot2` for the R figure scripts.
+Reconstruct the chromosome-split 10 kb feature matrix before using the full data:
+
+```bash
+python Data/CA_RT/atac_with_repliseq_10kb/combine_chr_tsv.py Data/CA_RT/atac_with_repliseq_10kb --output Data/CA_RT/atac_with_repliseq.10kb.tsv.gz
+```
+
+Some wrappers expect feature filenames beginning with `tcga_atac_with_repliseq`, whereas the bundled coarse files and the reconstructed file above begin with `atac_with_repliseq`. The [parameter reference](docs/parameters.md) lists the filenames expected by each wrapper.
+
+## Trained checkpoints
+
+[Model/](Model/) contains PyTorch checkpoints for breast, colorectal, esophagus, lung, prostate, and skin cancers. Scripts with `--model_dir`, `--best_dir`, or `--model_outdir` look for `best_model.pt` in the supplied directory.
+
+Checkpoint use requires the matching model architecture, feature order, and preprocessing. Per-checkpoint training and preprocessing configurations are not bundled. The current PCAWG validator also differs from the checkpoint architecture; see the [checkpoint compatibility note](docs/parameters.md#pcawg-validation) before using it.
+
+## Analysis and figure workflow
+
+Run scripts from the repository root. Main training requires feature, SNV, and indel paths at all three resolutions, `--ctype` to select the cancer column, and `--outdir` for outputs. The [parameter reference](docs/parameters.md) documents required inputs, optional parameters, defaults, and accepted values for the Python analysis scripts.
+
+Inspect command-line help after installation:
+
+```bash
+python Code/step1/run_model_hier_multi.py --help
+python -m Code.step3.feature_importance --help
+```
+
+The feature-importance script uses module invocation to resolve its model import.
+
+| Stage | Scripts |
+|---|---|
+| Tune and train | [Optuna search](Code/step1/optuna_hier_multi_tcga_rt.py); [hierarchical multi-task model](Code/step1/run_model_hier_multi.py) |
+| Cross-validation | [Full model](Code/step2/run_model_hier_multi_cv.py); [single-task ablation](Code/step2/run_model_hier_single_task_cv.py); [single-scale ablation](Code/step2/run_model_multitask_single_scale_cv.py) |
+| Paired comparisons | [Multi-task vs single-task](Code/step2/cv_compare_mtl_ms_vs_ms_st.py); [multi-scale vs single-scale](Code/step2/cv_compare_mtl_ms_vs_ss.py) |
+| Random Forest / XGBoost baselines | [Independent task/scale models](Code/step2/run_baseline_tree_models_randomsplit_independent.py) |
+| PCAWG validation | [Frozen-model evaluation and calibration](Code/step2/validate_pcawg_kfold_linear_calib.py) |
+| Residual analysis | [10 kb SNV predictions](Code/step2/eval_best_model_snv10_all.py); [10 kb indel predictions](Code/step2/eval_best_model_indel10_all.py) |
+| Feature importance | [Permutation importance and SHAP](Code/step3/feature_importance.py) |
+| Gene annotation | [Mutation-enriched windows and cancer-gene annotation](Code/step4/underestimated_windows.py) |
+
+| Figure | Scripts in `Figure_script/` | Inputs |
+|---|---|---|
+| 1 | [ATAC-seq heatmaps](Figure_script/plot_fig1_matched_atacseq_heatmap.py); [Repli-seq heatmaps](Figure_script/plot_fig1_matched_repliseq_heatmaps.py) | CA/RT features and HMF mutation tables |
+| 2 | [Model comparison](Figure_script/plot_fig2_mtms_dots_bar.R); [legend](Figure_script/plot_fig2_legend_only.R) | Model comparison and baseline summary tables; legend is self-contained |
+| 3 | [Feature correlations](Figure_script/plot_fig3_bar_pie.py); [SHAP plots](Figure_script/plot_fig3_all_shap.R) | SHAP tables and selected-feature lists |
+| 4 | [Residual distributions](Figure_script/plot_fig4_residual_violin_outliers.py); [per-cancer residual z-scores](Figure_script/plot_fig4_bar_stacked_per_cancer_z.py); [gene windows](Figure_script/plot_fig4_gene_windows.py); [z-scores](Figure_script/plot_fig4_zscores.R) | Residual, gene annotation, and enrichment summary tables |
+
+Run Python figure scripts with `python Figure_script/<filename>.py` and R scripts with `Rscript Figure_script/<filename>.R`, after preparing their required inputs. Some scripts use historical paths, including lowercase `data/`; set the documented path options or edit local path settings to match your files.
+
+
+## Support
+
+Questions and reproducibility issues can be submitted through [GitHub Issues](https://github.com/reimandlab/CAMM/issues).
