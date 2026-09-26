@@ -50,7 +50,7 @@ install.packages(c("ggplot2", "dplyr", "readr", "tidyr", "ggnewscale",
 
 HMF whole-genome data and metastatic sample metadata are controlled access. Requests are submitted through the [HMF data-access procedure](https://www.hartwigmedicalfoundation.nl/data/aanvragen-data/) and require approval and the applicable data access or material transfer agreements. HMF-derived intermediate files are not publicly shared because of data-use restrictions.
 
-Feature tables are tab-separated, optionally gzip-compressed; mutation tables are comma-separated. Both use `chr` and `start` coordinates. Mutation targets are selected by cancer-type column. Input-column handling and the current limitations of cross-scale alignment are described in the [implementation notes](docs/parameters.md#implementation-notes).
+Feature tables are tab-separated, optionally gzip-compressed; mutation tables are comma-separated. Both use `chr` and `start` coordinates. Mutation targets are selected by cancer-type column. 
 
 Reconstruct the chromosome-split 10 kb feature matrix before using the full data:
 
