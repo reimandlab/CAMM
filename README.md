@@ -58,18 +58,15 @@ Reconstruct the chromosome-split 10 kb feature matrix before using the full data
 python Data/CA_RT/atac_with_repliseq_10kb/combine_chr_tsv.py Data/CA_RT/atac_with_repliseq_10kb --output Data/CA_RT/atac_with_repliseq.10kb.tsv.gz
 ```
 
-Some wrappers expect feature filenames beginning with `tcga_atac_with_repliseq`, whereas the bundled coarse files and the reconstructed file above begin with `atac_with_repliseq`. The [parameter reference](docs/parameters.md) lists the filenames expected by each wrapper.
-
 ## Trained checkpoints
 
 [Model/](Model/) contains PyTorch checkpoints for breast, colorectal, esophagus, lung, prostate, and skin cancers. Scripts with `--model_dir`, `--best_dir`, or `--model_outdir` look for `best_model.pt` in the supplied directory.
 
-Checkpoint use requires the matching model architecture, feature order, and preprocessing. Per-checkpoint training and preprocessing configurations are not bundled. The current PCAWG validator also differs from the checkpoint architecture; see the [checkpoint compatibility note](docs/parameters.md#pcawg-validation) before using it.
+Checkpoint use requires the matching model architecture, feature order, and preprocessing. 
 
 ## Analysis and figure workflow
 
-Run scripts from the repository root. Main training requires feature, SNV, and indel paths at all three resolutions, `--ctype` to select the cancer column, and `--outdir` for outputs. The [parameter reference](docs/parameters.md) documents required inputs, optional parameters, defaults, and accepted values for the Python analysis scripts.
-
+Run scripts from the repository root. Main training requires feature, SNV, and indel paths at all three resolutions, `--ctype` to select the cancer column, and `--outdir` for outputs. 
 Inspect command-line help after installation:
 
 ```bash
