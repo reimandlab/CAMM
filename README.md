@@ -34,8 +34,6 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt "pandas==2.3.3"
 ```
 
-The pandas version is specified for compatibility with the current input readers. The [dependency inventory](requirements.txt) is not a frozen manuscript environment. See the [implementation notes](docs/parameters.md#implementation-notes) for remaining compatibility issues. For GPU support, follow the [PyTorch installation instructions](https://pytorch.org/get-started/locally/). XGBoost baselines additionally require `pip install xgboost`.
-
 For R figure scripts, install:
 
 ```r
